@@ -17,18 +17,19 @@ void drawBorder(int x_max, int y_max){
     floodfill(5, 5, GREEN);
 }
 
-boolean food_taken(int foodx, int foody, int snakex, int snakey){
+boolean foodTaken(int foodx, int foody, int snakex, int snakey){
     return snakex==foodx && snakey==foody;
 }
 
-void eat_food(int foodx, int foody, int &food_no, int &snake_len){
+void eatFood(int foodx, int foody, int &food_no, int &snake_len){
     setfillstyle(SOLID_FILL, BLACK);
     bar(foodx, foody, foodx+10, foody+10);
     food_no+=1;
     snake_len+=1;
+    //implement end game logic if snake_len>=max_length
 }
 
-void make_food(int &foodx, int &foody){
+void makeFood(int &foodx, int &foody){
     do{
 	    foodx = (1+rand()%(x_max-10));
 	    foody = (1+rand()%(y_max-10));
@@ -42,6 +43,52 @@ void make_food(int &foodx, int &foody){
     foody=foody*10;
 }
 
+void changeDirection(int const direction_change, int &snake_direction, std::vector<int> &snake_x, std::vector<int> &snake_y){
+    switch(direction_change){
+        case 0://no change
+            if(snake_direction==1){snake_y[0]=snake_y[0]-10;}
+            else if(snake_direction==2){snake_x[0]=snake_x[0]+10;}
+            else if(snake_direction==3){snake_y[0]=snake_y[0]+10;}
+            else if(snake_direction==4) {snake_x[0]=snake_x[0]-10;}
+            break;
+        case 1://change to up
+            if(snake_direction!=3){//making sure current direction is not down
+                snake_y[0]=snake_y[0]-10;
+            }
+            snake_direction=1;
+            break;
+        case 2://change to right
+            if(snake_direction!=4){//making sure current direction is not left
+                snake_x[0]=snake_x[0]+10;
+            }
+            snake_direction=2;
+            break;
+        case 3://change to down
+            if(snake_direction!=1){//making sure current direction is not up
+                snake_y[0]=snake_y[0]+10;
+            }
+            snake_direction=3;
+            break;
+        case 4://change to down
+            if(snake_direction!=2){//making sure current direction is not right
+                snake_x[0]=snake_x[0]-10;
+            }
+            snake_direction=4;
+            break;
+    }
+}
+void drawSnake(std::vector<int> &snake_x, std::vector<int> &snake_y, int const snake_len){
+    for(int i =0 ; i<snake_len;i++){
+        bar(snake_x[i],snake_y[i],snake_x[i]+10,snake_y[i]+10);
+    }
+
+}
+void updateSnake(std::vector<int> &snake_x, std::vector<int> &snake_y, int const snake_len){
+    for(int i= snake_len-1; i >0;i--){
+        snake_x[i] = snake_x[i-1];
+        snake_y[i] = snake_y[i -1];
+    }
+}
 int main(){
     
     // int gm, gd=DETECT;
@@ -62,22 +109,58 @@ int main(){
     int food_no=1;//food count
     
     //direction
-    int direction=1;
+    int snake_direction=1;
     /*
     UP=1
     RIGHT=2
     DOWN=3
     LEFT=4
     */
-
+    snake_x[0]=100;
+    snake_y[0]=100;
     for(;;){
+        cleardevice();
+        drawBorder(x_max, y_max);
         //food logic
-        if(food_taken(foodx, foody, snake_x[0], snake_y[0])){
-            eat_food(foodx, foody, food_no, snake_len);
-            make_food(foodx, foody);
+        if(foodTaken(foodx, foody, snake_x[0], snake_y[0])){
+            eatFood(foodx, foody, food_no, snake_len);
+            makeFood(foodx, foody);
             setfillstyle(SOLID_FILL, GREEN);
         }
-        bar(foodx, foody, foodx+10, foody+10);
+        bar(foodx, foody, foodx+10, foody+10); //draw the food
+
+        //movement logic
+        int direction_change=0;
+        /*
+        NO CHANGE = 0
+        UP=1
+        RIGHT=2
+        DOWN=3
+        LEFT=4
+        */
+        if(kbhit()){
+            switch(getch()){
+                case 72: //up
+                    direction_change=1;
+                    break;
+                case 77: //right
+                    direction_change=2;
+                    break;
+                case 80: //down
+                    direction_change=3;
+                    break;
+                case 75: //left
+                    direction_change=4;
+                    break;
+                default:
+                    direction_change=0;
+                    break;
+            }
+        }
+        changeDirection(direction_change, snake_direction, snake_x, snake_y);
+        drawSnake(snake_x, snake_y, snake_len);
+        updateSnake(snake_x, snake_y, snake_len);
+        delay(100);
     }
     getch();
     closegraph();

@@ -30,22 +30,33 @@ void eatFood(int foodx, int foody, int &food_no, int &snake_len){
     //implement end game logic if snake_len>=max_length
 }
 
-void makeFood(int &foodx, int &foody){
-    do{
-	    foodx = (rand()%(x_max-10));
-	    foody = (rand()%(y_max-10));
-    }while(getpixel(foodx,foody)!=0 && foodx > 10 && foody > 10);
+void makeFood(int &foodx, int &foody, std::vector<int> &snake_x, std::vector<int> &snake_y, int snake_len){
+    bool on_snake;
+    do {
+        on_snake = false;
+        foodx = (1 + rand() % (x_max - 10));
+        foody = (1 + rand() % (y_max - 10));
 
-    //make sure the food is on same grid as the snake
-    foodx=foodx/10;
-    foodx=foodx*10;
-    if(foodx==0)foodx+=10;
-    if(foodx==x_max-10)foodx-=10;
+        //make sure the food is on same grid as the snake
+        foodx=foodx/10;
+        foodx=foodx*10;
+        if(foodx==0)foodx+=10;
+        if(foodx==x_max-10)foodx-=10;
 
-    foody=foody/10;
-    foody=foody*10;
-    if(foody==0)foody+=10;
-    if(foody==y_max-10)foody-=10;
+        foody=foody/10;
+        foody=foody*10;
+        if(foody==0)foody+=10;
+        if(foody==y_max-10)foody-=10;
+
+        // Check if the food is on the snake's body
+        for (int i = 0; i < snake_len; i++) {
+            if (snake_x[i] == foodx && snake_y[i] == foody) {
+                on_snake = true;
+                break;
+            }
+        }
+    } while (on_snake);
+    
 }
 
 void changeDirection(int const direction_change, int &snake_direction, std::vector<int> &snake_x, std::vector<int> &snake_y){
@@ -61,11 +72,19 @@ void changeDirection(int const direction_change, int &snake_direction, std::vect
                 snake_y[0]=snake_y[0]-10;
                 snake_direction=1;
             }
+            else{//if its is down then keep going
+                snake_y[0]=snake_y[0]+10;
+                snake_direction=3;
+            }
             break;
         case 2://change to right
             if(snake_direction!=4){//making sure current direction is not left
                 snake_x[0]=snake_x[0]+10;
                 snake_direction=2;
+            }
+            else{//if its is left then keep going
+                snake_x[0]=snake_x[0]-10;
+                snake_direction=4;
             }
             break;
         case 3://change to down
@@ -73,16 +92,25 @@ void changeDirection(int const direction_change, int &snake_direction, std::vect
                 snake_y[0]=snake_y[0]+10;
                 snake_direction=3;
             }
+            else{//if its is up then keep going
+                snake_y[0]=snake_y[0]-10;
+                snake_direction=1;
+            }
             break;
-        case 4://change to down
+        case 4://change to left
             if(snake_direction!=2){//making sure current direction is not right
                 snake_x[0]=snake_x[0]-10;
                 snake_direction=4;
+            }
+            else{//if its is right then keep going
+                snake_x[0]=snake_x[0]+10;
+                snake_direction=2;
             }
             break;
     }
 }
 void drawSnake(std::vector<int> &snake_x, std::vector<int> &snake_y, int const snake_len){
+    setfillstyle(SOLID_FILL, WHITE);
     for(int i =0 ; i<snake_len;i++){
         bar(snake_x[i],snake_y[i],snake_x[i]+10,snake_y[i]+10);
     }
@@ -125,13 +153,14 @@ int main(){
     snake_y[0]=100;
     for(;;){
         cleardevice();
-        // drawBorder(x_max, y_max);
+        drawBorder(x_max, y_max);
         //food logic
         if(foodTaken(foodx, foody, snake_x[0], snake_y[0])){
             eatFood(foodx, foody, food_no, snake_len);
-            makeFood(foodx, foody);
-            setfillstyle(SOLID_FILL, GREEN);
+            makeFood(foodx, foody, snake_x, snake_y, snake_len);
+            
         }
+        setfillstyle(SOLID_FILL, YELLOW);
         bar(foodx, foody, foodx+10, foody+10); //draw the food
 
         //movement logic

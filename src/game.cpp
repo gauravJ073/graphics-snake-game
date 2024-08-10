@@ -138,25 +138,10 @@ int main(){
         DOWN=3
         LEFT=4
         */
-        if(kbhit()){
-            switch(getch()){
-                case 72: //up
-                    direction_change=1;
-                    break;
-                case 77: //right
-                    direction_change=2;
-                    break;
-                case 80: //down
-                    direction_change=3;
-                    break;
-                case 75: //left
-                    direction_change=4;
-                    break;
-                default:
-                    direction_change=0;
-                    break;
-            }
-        }
+        if (GetAsyncKeyState(VK_UP) & 0x8000) direction_change = 1;
+        if (GetAsyncKeyState(VK_RIGHT) & 0x8000) direction_change = 2;
+        if (GetAsyncKeyState(VK_DOWN) & 0x8000) direction_change = 3;
+        if (GetAsyncKeyState(VK_LEFT) & 0x8000) direction_change = 4;
         changeDirection(direction_change, snake_direction, snake_x, snake_y);
         drawSnake(snake_x, snake_y, snake_len);
         updateSnake(snake_x, snake_y, snake_len);

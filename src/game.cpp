@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <conio.h>
+#include <time.h>
 
 const int x_max=500,y_max=500;
 const int max_length=(x_max-10)*(y_max-10);//max len of snake
@@ -31,16 +32,20 @@ void eatFood(int foodx, int foody, int &food_no, int &snake_len){
 
 void makeFood(int &foodx, int &foody){
     do{
-	    foodx = (1+rand()%(x_max-10));
-	    foody = (1+rand()%(y_max-10));
+	    foodx = (rand()%(x_max-10));
+	    foody = (rand()%(y_max-10));
     }while(getpixel(foodx,foody)!=0 && foodx > 10 && foody > 10);
 
     //make sure the food is on same grid as the snake
     foodx=foodx/10;
     foodx=foodx*10;
+    if(foodx==0)foodx+=10;
+    if(foodx==x_max-10)foodx-=10;
 
     foody=foody/10;
     foody=foody*10;
+    if(foody==0)foody+=10;
+    if(foody==y_max-10)foody-=10;
 }
 
 void changeDirection(int const direction_change, int &snake_direction, std::vector<int> &snake_x, std::vector<int> &snake_y){
@@ -54,26 +59,26 @@ void changeDirection(int const direction_change, int &snake_direction, std::vect
         case 1://change to up
             if(snake_direction!=3){//making sure current direction is not down
                 snake_y[0]=snake_y[0]-10;
+                snake_direction=1;
             }
-            snake_direction=1;
             break;
         case 2://change to right
             if(snake_direction!=4){//making sure current direction is not left
                 snake_x[0]=snake_x[0]+10;
+                snake_direction=2;
             }
-            snake_direction=2;
             break;
         case 3://change to down
             if(snake_direction!=1){//making sure current direction is not up
                 snake_y[0]=snake_y[0]+10;
+                snake_direction=3;
             }
-            snake_direction=3;
             break;
         case 4://change to down
             if(snake_direction!=2){//making sure current direction is not right
                 snake_x[0]=snake_x[0]-10;
+                snake_direction=4;
             }
-            snake_direction=4;
             break;
     }
 }
@@ -90,7 +95,7 @@ void updateSnake(std::vector<int> &snake_x, std::vector<int> &snake_y, int const
     }
 }
 int main(){
-    
+    srand(time(0)); // Seed the random number generator with the current time
     // int gm, gd=DETECT;
     // char *data="";
     // initgraph(&gm, &gd, data);
@@ -120,7 +125,7 @@ int main(){
     snake_y[0]=100;
     for(;;){
         cleardevice();
-        drawBorder(x_max, y_max);
+        // drawBorder(x_max, y_max);
         //food logic
         if(foodTaken(foodx, foody, snake_x[0], snake_y[0])){
             eatFood(foodx, foody, food_no, snake_len);
@@ -142,6 +147,7 @@ int main(){
         if (GetAsyncKeyState(VK_RIGHT) & 0x8000) direction_change = 2;
         if (GetAsyncKeyState(VK_DOWN) & 0x8000) direction_change = 3;
         if (GetAsyncKeyState(VK_LEFT) & 0x8000) direction_change = 4;
+        
         changeDirection(direction_change, snake_direction, snake_x, snake_y);
         drawSnake(snake_x, snake_y, snake_len);
         updateSnake(snake_x, snake_y, snake_len);

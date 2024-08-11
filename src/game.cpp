@@ -6,6 +6,12 @@
 #include <conio.h>
 #include <time.h>
 
+//W A S D
+#define VK_W 0x57
+#define VK_A 0x41
+#define VK_S 0x53
+#define VK_D 0x44
+
 const int x_max=500,y_max=500;
 const int max_length=(x_max-10)*(y_max-10);//max len of snake
 
@@ -178,10 +184,10 @@ int main(){
         DOWN=3
         LEFT=4
         */
-        if (GetAsyncKeyState(VK_UP) & 0x8000) direction_change = 1;
-        if (GetAsyncKeyState(VK_RIGHT) & 0x8000) direction_change = 2;
-        if (GetAsyncKeyState(VK_DOWN) & 0x8000) direction_change = 3;
-        if (GetAsyncKeyState(VK_LEFT) & 0x8000) direction_change = 4;
+        if(GetAsyncKeyState(VK_UP) || GetAsyncKeyState(VK_W)){direction_change=1;}
+        else if(GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState(VK_D)){ direction_change=2;}
+        else if(GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState(VK_S)){ direction_change=3;}
+        else if(GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState(VK_A)) {direction_change=4;}
         
         changeDirection(direction_change, snake_direction, snake_x, snake_y);
         drawSnake(snake_x, snake_y, snake_len);
@@ -191,7 +197,7 @@ int main(){
         delay(delay_time);
 
         //checking if snake is touching border
-        if(snake_x[0] >= x_max || snake_x[0]<=0|| snake_y[0]<=0 || snake_y[0]>=y_max){
+        if(snake_x[0] >= x_max-10 || snake_x[0]<=0|| snake_y[0]<=0 || snake_y[0]>=y_max-10){
             gameOver();// to-do: implment game Over screen
             break;
         }

@@ -14,7 +14,8 @@
 #define VK_D 0x44
 
 const int x_max = 500, y_max = 500;
-const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
+// const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
+const int max_length = 1000;
 
 static int food_x, food_y;
 static std::vector<int> snake_x(max_length, 0), snake_y(max_length, 0);
@@ -24,16 +25,15 @@ static int score = 0;
 
 void gameOver()
 {
-    ;
-    ;
+    ;;
 }
 void drawBorder(int x_max, int y_max)
 {
-    setcolor(GREEN);
-    rectangle(0, 0, x_max, y_max);
-    rectangle(10, 10, x_max - 10, y_max - 10);
     setfillstyle(SOLID_FILL, GREEN);
-    floodfill(5, 5, GREEN);
+    bar (0, 0, 10, y_max);
+    bar (0, 0, x_max, 10);
+    bar (0, y_max, x_max, y_max-10);
+    bar (x_max, 0, x_max-10, y_max);
 }
 
 boolean onFood()
@@ -67,6 +67,7 @@ void makeFood()
     bool on_snake = false;
     do
     {
+        on_snake = false;
         food_x = (1 + rand() % (x_max - 10));
         food_y = (1 + rand() % (y_max - 10));
 

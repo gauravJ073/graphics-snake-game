@@ -1,3 +1,4 @@
+#include <iostream>
 #include <graphics.h>
 #include <vector>
 #include <stdio.h>
@@ -6,214 +7,184 @@
 #include <conio.h>
 #include <time.h>
 
-//W A S D
+// W A S D
 #define VK_W 0x57
 #define VK_A 0x41
 #define VK_S 0x53
 #define VK_D 0x44
 
-const int x_max=500,y_max=500;
-const int max_length=(x_max-10)*(y_max-10);//max len of snake
+const int x_max = 500, y_max = 500;
+const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
 
-void gameOver(){
-    ;;
+static int food_x, food_y;
+static std::vector<int> snake_x(max_length, 0), snake_y(max_length, 0);
+static int snake_len = 1;
+static int direction_x = 0, direction_y = -10;
+static int score = 0;
+
+void gameOver()
+{
+    ;
+    ;
 }
-
-//drawing green border to set the play area
-void drawBorder(int x_max, int y_max){
+void drawBorder(int x_max, int y_max)
+{
     setcolor(GREEN);
     rectangle(0, 0, x_max, y_max);
-    rectangle(10, 10, x_max-10, y_max-10);
+    rectangle(10, 10, x_max - 10, y_max - 10);
     setfillstyle(SOLID_FILL, GREEN);
     floodfill(5, 5, GREEN);
 }
 
-boolean foodTaken(int foodx, int foody, int snakex, int snakey){
-    return snakex==foodx && snakey==foody;
+boolean onFood()
+{
+    return snake_x[0] == food_x && snake_y[0] == food_y;
 }
-void eatFood(int foodx, int foody, int &food_no, int &snake_len){
-    setfillstyle(SOLID_FILL, BLACK);
-    bar(foodx, foody, foodx+10, foody+10);
-    food_no+=1;
-    snake_len+=1;
-    //implement end game logic if snake_len>=max_length
-    if(snake_len>=max_length){
-        gameOver();
+
+// TODO : Use it while making food item, maybe.
+boolean inPlayArea(int x, int y)
+{
+    // Play Area includes all points inside `Boundary` and not on `Snake`
+    // Checking if point is inside boundary or not.
+    if (x >= x_max - 10 or x < 10 or y >= y_max - 10 or y < 10)
+    {
+        return false;
     }
+
+    // Checking if point is on snake body.
+    for (int i = 1; i < snake_len; ++i)
+    {
+        if ((x == snake_x[i]) && (y == snake_y[i]))
+        {
+            return false;
+        }
+    }
+    return true;
 }
-void makeFood(int &foodx, int &foody, std::vector<int> &snake_x, std::vector<int> &snake_y, int snake_len){
-    bool on_snake;
-    do {
-        on_snake = false;
-        foodx = (1 + rand() % (x_max - 10));
-        foody = (1 + rand() % (y_max - 10));
 
-        //make sure the food is on same grid as the snake
-        foodx=foodx/10;
-        foodx=foodx*10;
-        if(foodx==0)foodx+=10;
-        if(foodx==x_max-10)foodx-=10;
+void makeFood()
+{
+    bool on_snake = false;
+    do
+    {
+        food_x = (1 + rand() % (x_max - 10));
+        food_y = (1 + rand() % (y_max - 10));
 
-        foody=foody/10;
-        foody=foody*10;
-        if(foody==0)foody+=10;
-        if(foody==y_max-10)foody-=10;
+        // make sure the food is on same grid as the snake
+        food_x = food_x / 10;
+        food_x = food_x * 10;
+        if (food_x == 0)
+            food_x += 10;
+        if (food_x == x_max - 10)
+            food_x -= 10;
+
+        food_y = food_y / 10;
+        food_y = food_y * 10;
+        if (food_y == 0)
+            food_y += 10;
+        if (food_y == y_max - 10)
+            food_y -= 10;
 
         // Check if the food is on the snake's body
-        for (int i = 0; i < snake_len; i++) {
-            if (snake_x[i] == foodx && snake_y[i] == foody) {
+        for (int i = 0; i < snake_len; i++)
+        {
+            if (snake_x[i] == food_x && snake_y[i] == food_y)
+            {
                 on_snake = true;
                 break;
             }
         }
     } while (on_snake);
-    
+    setfillstyle(SOLID_FILL, YELLOW);
+    bar(food_x, food_y, food_x + 10, food_y + 10); // draw the food
 }
 
-void changeDirection(int const direction_change, int &snake_direction, std::vector<int> &snake_x, std::vector<int> &snake_y){
-    switch(direction_change){
-        case 0://no change
-            if(snake_direction==1){snake_y[0]=snake_y[0]-10;}
-            else if(snake_direction==2){snake_x[0]=snake_x[0]+10;}
-            else if(snake_direction==3){snake_y[0]=snake_y[0]+10;}
-            else if(snake_direction==4) {snake_x[0]=snake_x[0]-10;}
-            break;
-        case 1://change to up
-            if(snake_direction!=3){//making sure current direction is not down
-                snake_y[0]=snake_y[0]-10;
-                snake_direction=1;
-            }
-            else{//if its is down then keep going
-                snake_y[0]=snake_y[0]+10;
-                snake_direction=3;
-            }
-            break;
-        case 2://change to right
-            if(snake_direction!=4){//making sure current direction is not left
-                snake_x[0]=snake_x[0]+10;
-                snake_direction=2;
-            }
-            else{//if its is left then keep going
-                snake_x[0]=snake_x[0]-10;
-                snake_direction=4;
-            }
-            break;
-        case 3://change to down
-            if(snake_direction!=1){//making sure current direction is not up
-                snake_y[0]=snake_y[0]+10;
-                snake_direction=3;
-            }
-            else{//if its is up then keep going
-                snake_y[0]=snake_y[0]-10;
-                snake_direction=1;
-            }
-            break;
-        case 4://change to left
-            if(snake_direction!=2){//making sure current direction is not right
-                snake_x[0]=snake_x[0]-10;
-                snake_direction=4;
-            }
-            else{//if its is right then keep going
-                snake_x[0]=snake_x[0]+10;
-                snake_direction=2;
-            }
-            break;
-    }
-}
-void drawSnake(std::vector<int> &snake_x, std::vector<int> &snake_y, int const snake_len){
+void drawSnake()
+{
     setfillstyle(SOLID_FILL, WHITE);
-    for(int i =0 ; i<snake_len;i++){
-        bar(snake_x[i],snake_y[i],snake_x[i]+10,snake_y[i]+10);
-    }
-
-}
-void updateSnake(std::vector<int> &snake_x, std::vector<int> &snake_y, int const snake_len){
-    for(int i= snake_len-1; i >0;i--){
-        snake_x[i] = snake_x[i-1];
-        snake_y[i] = snake_y[i -1];
-    }
+    // Drawing only the new head since the previous body points have already been painted. So need to redraw them.
+    bar(snake_x.front(), snake_y.front(), snake_x.front()+10, snake_y.front()+10);
 }
 
-int main(){
-    srand(time(0)); // Seed the random number generator with the current time
-    // int gm, gd=DETECT;
-    // char *data="";
-    // initgraph(&gm, &gd, data);
-    
+void updateSnake()
+{
+    for (int i = snake_len - 1; i > 0; i--)
+    {
+        snake_x[i] = snake_x[i - 1];
+        snake_y[i] = snake_y[i - 1];
+    }
+}
+
+int main()
+{
+    snake_x.front() = 200;
+    snake_y.front() = 200;
     initwindow(x_max, y_max);
-    
+
+    makeFood();
+
+    srand(time(0)); // Seed the random number generator with the current time
+
     drawBorder(x_max, y_max);
-    int delay_time=100;
 
-    //SNAKE
-    std::vector<int> snake_x(max_length, 0), snake_y(max_length, 0);//to store the coordinates of the snake
-    int snake_len=1;//to store the lenght of snake
+    int frame_time = 100;
 
-    //FOOD
-    int foodx=x_max/2, foody=y_max/2;//food coordinates
-    int food_no=1;//food count
-    
-    //direction
-    int snake_direction=1;
-    /*
-    UP=1
-    RIGHT=2
-    DOWN=3
-    LEFT=4
-    */
-    snake_x[0]=200;
-    snake_y[0]=200;
-    for(;;){
-        cleardevice();
-        drawBorder(x_max, y_max);
-        //food logic
-        if(foodTaken(foodx, foody, snake_x[0], snake_y[0])){
-            eatFood(foodx, foody, food_no, snake_len);
-            makeFood(foodx, foody, snake_x, snake_y, snake_len);
-            if(food_no%2==0) delay_time-=1;//game becomes slightly faster on eating 2 food
+    for (;;)
+    {
+        if (!inPlayArea(snake_x[0], snake_y[0])) // Exit if Snake Head is outside Play Area.
+        {
+            gameOver();
+            closegraph();
+            return 0;
         }
-        setfillstyle(SOLID_FILL, YELLOW);
-        bar(foodx, foody, foodx+10, foody+10); //draw the food
-
-        //movement logic
-        int direction_change=0;
-        /*
-        NO CHANGE = 0
-        UP=1
-        RIGHT=2
-        DOWN=3
-        LEFT=4
-        */
-        if(GetAsyncKeyState(VK_UP) || GetAsyncKeyState(VK_W)){direction_change=1;}
-        else if(GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState(VK_D)){ direction_change=2;}
-        else if(GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState(VK_S)){ direction_change=3;}
-        else if(GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState(VK_A)) {direction_change=4;}
-        
-        changeDirection(direction_change, snake_direction, snake_x, snake_y);
-        drawSnake(snake_x, snake_y, snake_len);
-        updateSnake(snake_x, snake_y, snake_len);
-        
-        
-        delay(delay_time);
-
-        //checking if snake is touching border
-        if(snake_x[0] >= x_max-10 || snake_x[0]<=0|| snake_y[0]<=0 || snake_y[0]>=y_max-10){
-            gameOver();// to-do: implment game Over screen
-            break;
+        else if (onFood()) // If Snake Head is on food, increase lenght and score and generate a new food item.
+        {
+            snake_len++;
+            score++;
+            makeFood();
+        }
+        else // If it is a normal movement with no event, repaint the tail as black to hide it.
+        {
+            setfillstyle(SOLID_FILL, BLACK);
+            int snake_end_x = snake_x[snake_len - 1];
+            int snake_end_y = snake_y[snake_len - 1];
+            bar(snake_end_x, snake_end_y, snake_end_x + 10, snake_end_y + 10);
         }
 
-        int chk=max_length-1;
-        for(int i = 2; i < snake_len;i++){
-            if(snake_x[0] == snake_x[i] && snake_y[0] == snake_y[i]){
-                chk = i;
-                break;
-            }
+        // movement logic
+        if (GetAsyncKeyState(VK_UP) || GetAsyncKeyState(VK_W))
+        {
+            if (!(direction_x == 0 and direction_y == 10))
+                direction_x = 0, direction_y = -10;
         }
-        if(snake_x[0] == snake_x[chk] && snake_y[0] == snake_y[chk]){
-            gameOver(); //to-do: implment gaveOver screen
-            break;
+        else if (GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState(VK_D))
+        {
+            if (!(direction_x == -10 and direction_y == 0))
+                direction_x = 10, direction_y = 0;
         }
+        else if (GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState(VK_S))
+        {
+            if (!(direction_x == 0 and direction_y == -10))
+                direction_x = 0, direction_y = 10;
+        }
+        else if (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState(VK_A))
+        {
+            if (!(direction_x == 10 and direction_y == 0))
+                direction_x = -10, direction_y = 0;
+        }
+
+        // Shift all body points to right by 1.
+        updateSnake();
+
+        // Set new head location.
+        snake_x[0] += direction_x;
+        snake_y[0] += direction_y;
+
+        drawSnake();
+
+        delay(frame_time);
     }
+
     getch();
     closegraph();
 }

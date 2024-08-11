@@ -102,7 +102,7 @@ void makeFood()
 void drawSnake()
 {
     setfillstyle(SOLID_FILL, WHITE);
-    // Drawing only the new head since the previous body points have already been painted. So need to redraw them.
+    // Drawing only the new head since the previous body points have already been painted. So no need to redraw them.
     bar(snake_x.front(), snake_y.front(), snake_x.front()+10, snake_y.front()+10);
 }
 

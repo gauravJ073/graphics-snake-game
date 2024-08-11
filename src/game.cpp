@@ -17,7 +17,7 @@ const int x_max = 500, y_max = 500;
 const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
 
 static int food_x, food_y;
-static std::vector<int> snake_x(max_length, 0), snake_y(max_length,0);
+static std::vector<int> snake_x(max_length, 0), snake_y(max_length, 0);
 static int snake_len = 1;
 static int direction_x = 0, direction_y = -10;
 static int score = 0;
@@ -41,15 +41,20 @@ boolean onFood()
     return snake_x[0] == food_x && snake_y[0] == food_y;
 }
 
-boolean inPlayArea() {
-    int snake_head_x = snake_x.front();
-    int snake_head_y = snake_y.front();
-
-    if (snake_head_x >= x_max-10 or snake_head_x < 10 or snake_head_y >= y_max-10 or snake_head_y < 10) {
+// TODO : Use it while making food item, maybe.
+boolean inPlayArea(int x, int y)
+{
+    // Play Area includes all points inside `Boundary` and not on `Snake`
+    // Checking if point is inside boundary or not.
+    if (x >= x_max - 10 or x < 10 or y >= y_max - 10 or y < 10)
+    {
         return false;
     }
-    for (int i = 1; i < snake_len; ++i) {
-        if ((snake_head_x == snake_x[i]) && (snake_head_y == snake_y[i]))
+
+    // Checking if point is on snake body.
+    for (int i = 1; i < snake_len; ++i)
+    {
+        if ((x == snake_x[i]) && (y == snake_y[i]))
         {
             return false;
         }
@@ -94,14 +99,11 @@ void makeFood()
     bar(food_x, food_y, food_x + 10, food_y + 10); // draw the food
 }
 
-
 void drawSnake()
 {
     setfillstyle(SOLID_FILL, WHITE);
-    for (int i = 0; i < snake_len; i++)
-    {
-        bar(snake_x[i], snake_y[i], snake_x[i] + 10, snake_y[i] + 10);
-    }
+    // Drawing only the new head since the previous body points have already been painted. So need to redraw them.
+    bar(snake_x.front(), snake_y.front(), snake_x.front()+10, snake_y.front()+10);
 }
 
 void updateSnake()
@@ -129,20 +131,24 @@ int main()
 
     for (;;)
     {
-        if (!inPlayArea()) {
+        if (!inPlayArea(snake_x[0], snake_y[0])) // Exit if Snake Head is outside Play Area.
+        {
             gameOver();
             closegraph();
             return 0;
-        } else if (onFood()) {
+        }
+        else if (onFood()) // If Snake Head is on food, increase lenght and score and generate a new food item.
+        {
             snake_len++;
             score++;
-            std::cout << "Score : " << score << std::endl;
             makeFood();
-        } else {
+        }
+        else // If it is a normal movement with no event, repaint the tail as black to hide it.
+        {
             setfillstyle(SOLID_FILL, BLACK);
-            int snake_end_x = snake_x[snake_len-1];
-            int snake_end_y = snake_y[snake_len-1];
-            bar(snake_end_x, snake_end_y, snake_end_x+10, snake_end_y+10);
+            int snake_end_x = snake_x[snake_len - 1];
+            int snake_end_y = snake_y[snake_len - 1];
+            bar(snake_end_x, snake_end_y, snake_end_x + 10, snake_end_y + 10);
         }
 
         // movement logic
@@ -166,7 +172,11 @@ int main()
             if (!(direction_x == 10 and direction_y == 0))
                 direction_x = -10, direction_y = 0;
         }
+
+        // Shift all body points to right by 1.
         updateSnake();
+
+        // Set new head location.
         snake_x[0] += direction_x;
         snake_y[0] += direction_y;
 

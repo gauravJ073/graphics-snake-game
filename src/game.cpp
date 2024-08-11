@@ -9,6 +9,10 @@
 const int x_max=500,y_max=500;
 const int max_length=(x_max-10)*(y_max-10);//max len of snake
 
+void gameOver(){
+    ;;
+}
+
 //drawing green border to set the play area
 void drawBorder(int x_max, int y_max){
     setcolor(GREEN);
@@ -27,6 +31,9 @@ void eatFood(int foodx, int foody, int &food_no, int &snake_len){
     food_no+=1;
     snake_len+=1;
     //implement end game logic if snake_len>=max_length
+    if(snake_len>=max_length){
+        gameOver();
+    }
 }
 void makeFood(int &foodx, int &foody, std::vector<int> &snake_x, std::vector<int> &snake_y, int snake_len){
     bool on_snake;
@@ -120,6 +127,7 @@ void updateSnake(std::vector<int> &snake_x, std::vector<int> &snake_y, int const
         snake_y[i] = snake_y[i -1];
     }
 }
+
 int main(){
     srand(time(0)); // Seed the random number generator with the current time
     // int gm, gd=DETECT;
@@ -129,7 +137,7 @@ int main(){
     initwindow(x_max, y_max);
     
     drawBorder(x_max, y_max);
-
+    int delay_time=100;
 
     //SNAKE
     std::vector<int> snake_x(max_length, 0), snake_y(max_length, 0);//to store the coordinates of the snake
@@ -147,8 +155,8 @@ int main(){
     DOWN=3
     LEFT=4
     */
-    snake_x[0]=100;
-    snake_y[0]=100;
+    snake_x[0]=200;
+    snake_y[0]=200;
     for(;;){
         cleardevice();
         drawBorder(x_max, y_max);
@@ -156,7 +164,7 @@ int main(){
         if(foodTaken(foodx, foody, snake_x[0], snake_y[0])){
             eatFood(foodx, foody, food_no, snake_len);
             makeFood(foodx, foody, snake_x, snake_y, snake_len);
-            
+            if(food_no%2==0) delay_time-=1;//game becomes slightly faster on eating 2 food
         }
         setfillstyle(SOLID_FILL, YELLOW);
         bar(foodx, foody, foodx+10, foody+10); //draw the food
@@ -178,11 +186,13 @@ int main(){
         changeDirection(direction_change, snake_direction, snake_x, snake_y);
         drawSnake(snake_x, snake_y, snake_len);
         updateSnake(snake_x, snake_y, snake_len);
-        delay(100);
+        
+        
+        delay(delay_time);
 
         //checking if snake is touching border
         if(snake_x[0] >= x_max || snake_x[0]<=0|| snake_y[0]<=0 || snake_y[0]>=y_max){
-            //gameOver();// to-do: implment game Over screen
+            gameOver();// to-do: implment game Over screen
             break;
         }
 
@@ -194,7 +204,7 @@ int main(){
             }
         }
         if(snake_x[0] == snake_x[chk] && snake_y[0] == snake_y[chk]){
-            // gameOver(); //to-do: implment gaveOver screen
+            gameOver(); //to-do: implment gaveOver screen
             break;
         }
     }

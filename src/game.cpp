@@ -21,7 +21,6 @@ void drawBorder(int x_max, int y_max){
 boolean foodTaken(int foodx, int foody, int snakex, int snakey){
     return snakex==foodx && snakey==foody;
 }
-
 void eatFood(int foodx, int foody, int &food_no, int &snake_len){
     setfillstyle(SOLID_FILL, BLACK);
     bar(foodx, foody, foodx+10, foody+10);
@@ -29,7 +28,6 @@ void eatFood(int foodx, int foody, int &food_no, int &snake_len){
     snake_len+=1;
     //implement end game logic if snake_len>=max_length
 }
-
 void makeFood(int &foodx, int &foody, std::vector<int> &snake_x, std::vector<int> &snake_y, int snake_len){
     bool on_snake;
     do {
@@ -181,6 +179,24 @@ int main(){
         drawSnake(snake_x, snake_y, snake_len);
         updateSnake(snake_x, snake_y, snake_len);
         delay(100);
+
+        //checking if snake is touching border
+        if(snake_x[0] >= x_max || snake_x[0]<=0|| snake_y[0]<=0 || snake_y[0]>=y_max){
+            //gameOver();// to-do: implment game Over screen
+            break;
+        }
+
+        int chk=max_length-1;
+        for(int i = 2; i < snake_len;i++){
+            if(snake_x[0] == snake_x[i] && snake_y[0] == snake_y[i]){
+                chk = i;
+                break;
+            }
+        }
+        if(snake_x[0] == snake_x[chk] && snake_y[0] == snake_y[chk]){
+            // gameOver(); //to-do: implment gaveOver screen
+            break;
+        }
     }
     getch();
     closegraph();

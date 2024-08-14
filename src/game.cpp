@@ -141,7 +141,6 @@ int game(){
         {
             snake_len++;
             score++;
-            progress++;
             makeFood();
             if(score%2==0) frame_time-=1;
         }
@@ -181,11 +180,7 @@ int game(){
         // Set new head location.
         snake_x[0] += direction_x;
         snake_y[0] += direction_y;
-
-        if (progress == 2) {
-            frame_time -= 10;
-            progress = 0;
-        }
+        
         drawSnake();
         delay(frame_time);
     }

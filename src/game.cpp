@@ -118,6 +118,7 @@ void updateSnake()
 
 int main()
 {
+    int progress = 0;
     snake_x.front() = 200;
     snake_y.front() = 200;
     initwindow(x_max, y_max);
@@ -142,6 +143,7 @@ int main()
         {
             snake_len++;
             score++;
+            progress++;
             makeFood();
         }
         else // If it is a normal movement with no event, repaint the tail as black to hide it.
@@ -181,8 +183,11 @@ int main()
         snake_x[0] += direction_x;
         snake_y[0] += direction_y;
 
+        if (progress == 2) {
+            frame_time -= 10;
+            progress = 0;
+        }
         drawSnake();
-
         delay(frame_time);
     }
 

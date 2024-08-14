@@ -143,6 +143,7 @@ int main()
             snake_len++;
             score++;
             makeFood();
+            if(score%2==0) frame_time-=1;
         }
         else // If it is a normal movement with no event, repaint the tail as black to hide it.
         {

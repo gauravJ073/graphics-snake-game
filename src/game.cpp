@@ -25,7 +25,12 @@ static int score = 0;
 
 void gameOver()
 {
-    ;;
+    /*
+    bar- area
+    display : GAME OVER
+    a white button to move up and down to select:-
+    main menu -if selected set score =0, exit game- close graph
+    */
 }
 void drawBorder(int x_max, int y_max)
 {
@@ -116,12 +121,7 @@ void updateSnake()
     }
 }
 
-int main()
-{
-    snake_x.front() = 200;
-    snake_y.front() = 200;
-    initwindow(x_max, y_max);
-
+int game(){
     makeFood();
 
     srand(time(0)); // Seed the random number generator with the current time
@@ -135,8 +135,7 @@ int main()
         if (!inPlayArea(snake_x[0], snake_y[0])) // Exit if Snake Head is outside Play Area.
         {
             gameOver();
-            closegraph();
-            return 0;
+            return score;
         }
         else if (onFood()) // If Snake Head is on food, increase lenght and score and generate a new food item.
         {
@@ -186,7 +185,17 @@ int main()
 
         delay(frame_time);
     }
+}
 
+int main()
+{
+    snake_x.front() = 200;
+    snake_y.front() = 200;
+    initwindow(x_max, y_max);
+    int sc=game();
+    
     getch();
     closegraph();
+    return sc;
+    
 }

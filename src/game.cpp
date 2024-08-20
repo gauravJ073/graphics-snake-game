@@ -27,11 +27,75 @@ void gameOver()
 {
     /*
     bar- area
-    display : GAME OVER
+    display : GAME  OVER
     a white button to move up and down to select:-
     main menu -if selected set score =0, exit game- close graph
     */
+    int menu_size=340, menu_x = 80, menu_y=100;
+    int gameover_size=4;
+    int menu_selection=0;//0=mainmenu, 1=exitgame
+
+    setfillstyle(SOLID_FILL, DARKGRAY);
+    bar(menu_x, menu_y, menu_x+menu_size, menu_y+menu_size);
+
+    //display gameover
+    setcolor(WHITE);
+    setbkcolor(DARKGRAY);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, gameover_size);
+    int gameover_x=x_max/2-(gameover_size*8*10/2), gameover_y=150;
+    outtextxy(gameover_x, gameover_y, "GAME  OVER");
+
+    //menu selection
+    int end_menu_size=3;
+
+    int const end_menu_items=2;
+    char* end_menu[end_menu_items];
+    end_menu[0]="Main  Menu";
+    end_menu[1]="Exit  Game";
+
+    int selection=0;
+    int end_menu_x=x_max/2-(end_menu_size*8*10/2), end_menu_y=300;
+    printf("%d", end_menu_x);
+    
+    for(;;){
+        if(GetAsyncKeyState(VK_UP)){
+            if(selection==1) selection--;
+        }
+        else if(GetAsyncKeyState(VK_DOWN)){
+            if(selection==0)selection++;
+        }
+        else if(GetAsyncKeyState(VK_RETURN)){
+            if(selection==0){
+                //mainmenu();
+            }
+            else if(selection==1){
+                closegraph();
+                exit(0);
+            }
+        }
+        if(selection==0){
+            setcolor(BLACK);
+            setbkcolor(WHITE);
+            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
+            outtextxy(end_menu_x+10, end_menu_y, end_menu[0]);
+            setcolor(WHITE);
+            setbkcolor(DARKGRAY);
+            outtextxy(end_menu_x+10, end_menu_y+20, end_menu[1]);
+        }
+        else{
+            setcolor(WHITE);
+            setbkcolor(DARKGRAY); 
+            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
+            outtextxy(end_menu_x+10, end_menu_y, end_menu[0]);
+            setcolor(BLACK);
+            setbkcolor(WHITE);
+            outtextxy(end_menu_x+10, end_menu_y+20, end_menu[1]);
+        }
+        delay(100);
+        
+    }
 }
+
 void drawBorder(int x_max, int y_max)
 {
     setfillstyle(SOLID_FILL, GREEN);

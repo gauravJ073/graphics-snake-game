@@ -244,9 +244,8 @@ int game(){
         // Set new head location.
         snake_x[0] += direction_x;
         snake_y[0] += direction_y;
-
+        
         drawSnake();
-
         delay(frame_time);
     }
 }

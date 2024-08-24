@@ -15,17 +15,14 @@
 #define VK_D 0x44
 
 // Menu
-using MenuOption = std::pair<std::string, void(*)()>;
+using MenuOption = std::pair<std::string, void (*)()>;
 
 // Window Size
 const int x_max = 500;
 const int y_max = 500;
 
-
 // Gameplay
-// static int direction_x = 0, direction_y = -10; // Direction of movement (Default : UP)
 static int food_x, food_y; // Current food item coordinates
-// static int score = 0; // current score
 
 // Snake
 const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
@@ -34,32 +31,32 @@ static std::vector<int> snake_y(max_length, 0);
 static int snake_len = 1;
 
 // ------ Function Prototypes ------
-    // Game State
+// Game State
 void resetSnake();
 
-    // Utility
-boolean onFood();
-boolean inPlayArea(int, int);
+// Utility
+bool onFood();
+bool inPlayArea(int item_x, int item_y);
+void drawButton(int menu_x, int menu_y, std::string text, bool focus);
+void drawMenu(int menu_x, int menu_y, int menu_size, std::vector<MenuOption> options, int selected = 0);
 
-    // Gameplay
+// Gameplay
 void makeFood();
 void drawSnake();
 void updateSnake();
 
-    // User Interaction
+// User Interaction
 void mainMenu();
 void gameOver();
 void game();
 void exitGame();
 // --------- xxx ---------
 
-void resetSnake() {
+void resetSnake()
+{
     snake_x.front() = 200;
     snake_y.front() = 200;
     snake_len = 1;
-    // direction_x = 0;
-    // direction_y = -10;
-    // score  = 0;
 }
 
 void drawButton(int x, int y, std::string text, bool focus)
@@ -83,13 +80,13 @@ void drawButton(int x, int y, std::string text, bool focus)
     setbkcolor(BLACK);
 }
 
-void drawMenu(int x, int y, int menu_size,  std::string title, std::vector<MenuOption> options, int selected = 0)
+void drawMenu(int x, int y, int menu_size, std::string title, std::vector<MenuOption> options, int selected = 0)
 {
     // Gives time if user reaches menu from another Keypress.
     // If not given then the keypress (mostly ENTER) from previous is registered.
     delay(200);
 
-    int x_offset =  x + 20;
+    int x_offset = x + 20;
     int y_offset = y + 100;
     int button_height = 30;
 
@@ -145,13 +142,13 @@ void drawMenu(int x, int y, int menu_size,  std::string title, std::vector<MenuO
             button_y = y_offset + (selected * button_height);
             drawButton(x_offset, button_y, options[selected].first, true);
         }
-        
+
         // Execution function associated with current selection on ENTER Keypress
         else if (GetAsyncKeyState(VK_RETURN))
         {
             (options[selected].second)();
         }
-        
+
         delay(100); // this gives time betwen each keypress register
     }
 }
@@ -165,13 +162,13 @@ void drawBorder(int x_max, int y_max)
     bar(x_max, 0, x_max - 10, y_max);
 }
 
-boolean onFood()
+bool onFood()
 {
     return snake_x[0] == food_x && snake_y[0] == food_y;
 }
 
 // TODO : Use it while making food item, maybe.
-boolean inPlayArea(int x, int y)
+bool inPlayArea(int x, int y)
 {
     // Play Area includes all points inside `Boundary` and not on `Snake`
     // Checking if point is inside boundary or not.
@@ -245,12 +242,14 @@ void updateSnake()
     }
 }
 
-void exitGame() {
+void exitGame()
+{
     closegraph();
     exit(0);
 }
 
-void mainMenu() {
+void mainMenu()
+{
     std::vector<MenuOption> main_menu_options;
 
     main_menu_options.push_back(MenuOption("START GAME", *game));
@@ -261,82 +260,12 @@ void mainMenu() {
 
 void gameOver()
 {
-    /*
-    bar- area
-    display : GAME  OVER
-    a white button to move up and down to select:-
-    main menu -if selected set score =0, exit game- close graph
-    */
-    int menu_size = 340, menu_x = 80, menu_y = 100;
-    int gameover_size = 4;
-    int menu_selection = 0; // 0=mainmenu, 1=exitgame
+    std::vector<MenuOption> game_over_options;
 
-    setfillstyle(SOLID_FILL, DARKGRAY);
-    bar(menu_x, menu_y, menu_x + menu_size, menu_y + menu_size);
+    game_over_options.push_back(MenuOption("MAIN MENU", *mainMenu));
+    game_over_options.push_back(MenuOption("EXIT GAME", *exitGame));
 
-    // display gameover
-    setcolor(WHITE);
-    setbkcolor(DARKGRAY);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, gameover_size);
-    int gameover_x = x_max / 2 - (gameover_size * 8 * 10 / 2), gameover_y = 150;
-    outtextxy(gameover_x, gameover_y, "GAME  OVER");
-
-    // menu selection
-    int end_menu_size = 3;
-
-    int const end_menu_items = 2;
-    char *end_menu[end_menu_items];
-    end_menu[0] = "Main  Menu";
-    end_menu[1] = "Exit  Game";
-
-    int selection = 0;
-    int end_menu_x = x_max / 2 - (end_menu_size * 8 * 10 / 2), end_menu_y = 300;
-
-    for (;;)
-    {
-        if (GetAsyncKeyState(VK_UP))
-        {
-            if (selection == 1)
-                selection--;
-        }
-        else if (GetAsyncKeyState(VK_DOWN))
-        {
-            if (selection == 0)
-                selection++;
-        }
-        else if (GetAsyncKeyState(VK_RETURN))
-        {
-            if (selection == 0)
-            {
-                mainMenu();
-            }
-            else if (selection == 1)
-            {
-                exitGame();
-            }
-        }
-        if (selection == 0)
-        {
-            setcolor(BLACK);
-            setbkcolor(WHITE);
-            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
-            outtextxy(end_menu_x + 10, end_menu_y, end_menu[0]);
-            setcolor(WHITE);
-            setbkcolor(DARKGRAY);
-            outtextxy(end_menu_x + 10, end_menu_y + 20, end_menu[1]);
-        }
-        else
-        {
-            setcolor(WHITE);
-            setbkcolor(DARKGRAY);
-            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
-            outtextxy(end_menu_x + 10, end_menu_y, end_menu[0]);
-            setcolor(BLACK);
-            setbkcolor(WHITE);
-            outtextxy(end_menu_x + 10, end_menu_y + 20, end_menu[1]);
-        }
-        delay(100);
-    }
+    drawMenu(80, 100, 340, "Game Over", game_over_options);
 }
 
 void game()
@@ -352,7 +281,6 @@ void game()
 
     srand(time(0)); // Seed the random number generator with the current time
     makeFood();
-
 
     for (;;)
     {
@@ -415,9 +343,6 @@ int main()
 {
     initwindow(x_max, y_max);
     mainMenu();
-    // int sc = game();
-
     getch();
-    // return sc;
     return 0;
 }

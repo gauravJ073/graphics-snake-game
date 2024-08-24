@@ -6,6 +6,7 @@
 #include <math.h>
 #include <conio.h>
 #include <time.h>
+#include <utility>
 
 // W A S D
 #define VK_W 0x57
@@ -13,96 +14,155 @@
 #define VK_S 0x53
 #define VK_D 0x44
 
-const int x_max = 500, y_max = 500;
-// const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
-const int max_length = 1000;
+// Menu
+using MenuOption = std::pair<std::string, void(*)()>;
 
-static int food_x, food_y;
-static std::vector<int> snake_x(max_length, 0), snake_y(max_length, 0);
+// Window Size
+const int x_max = 500;
+const int y_max = 500;
+
+
+// Gameplay
+// static int direction_x = 0, direction_y = -10; // Direction of movement (Default : UP)
+static int food_x, food_y; // Current food item coordinates
+// static int score = 0; // current score
+
+// Snake
+const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
+static std::vector<int> snake_x(max_length, 0);
+static std::vector<int> snake_y(max_length, 0);
 static int snake_len = 1;
-static int direction_x = 0, direction_y = -10;
-static int score = 0;
 
-void gameOver()
+// ------ Function Prototypes ------
+    // Game State
+void resetSnake();
+
+    // Utility
+boolean onFood();
+boolean inPlayArea(int, int);
+
+    // Gameplay
+void makeFood();
+void drawSnake();
+void updateSnake();
+
+    // User Interaction
+void mainMenu();
+void gameOver();
+void game();
+void exitGame();
+// --------- xxx ---------
+
+void resetSnake() {
+    snake_x.front() = 200;
+    snake_y.front() = 200;
+    snake_len = 1;
+    // direction_x = 0;
+    // direction_y = -10;
+    // score  = 0;
+}
+
+void drawButton(int x, int y, std::string text, bool focus)
 {
-    /*
-    bar- area
-    display : GAME  OVER
-    a white button to move up and down to select:-
-    main menu -if selected set score =0, exit game- close graph
-    */
-    int menu_size=340, menu_x = 80, menu_y=100;
-    int gameover_size=4;
-    int menu_selection=0;//0=mainmenu, 1=exitgame
+    if (focus)
+    {
+        setcolor(BLACK);
+        setbkcolor(WHITE);
+        settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+        outtextxy(x, y, (char *)text.c_str());
+    }
+    else
+    {
+        setcolor(WHITE);
+        setbkcolor(DARKGRAY);
+        settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+        outtextxy(x, y, (char *)text.c_str());
+    }
+
+    setcolor(WHITE);
+    setbkcolor(BLACK);
+}
+
+void drawMenu(int x, int y, int menu_size,  std::string title, std::vector<MenuOption> options, int selected = 0)
+{
+    // Gives time if user reaches menu from another Keypress.
+    // If not given then the keypress (mostly ENTER) from previous is registered.
+    delay(200);
+
+    int x_offset =  x + 20;
+    int y_offset = y + 100;
+    int button_height = 30;
 
     setfillstyle(SOLID_FILL, DARKGRAY);
-    bar(menu_x, menu_y, menu_x+menu_size, menu_y+menu_size);
+    bar(x, y, x + menu_size, y + menu_size);
 
-    //display gameover
-    setcolor(WHITE);
-    setbkcolor(DARKGRAY);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, gameover_size);
-    int gameover_x=x_max/2-(gameover_size*8*10/2), gameover_y=150;
-    outtextxy(gameover_x, gameover_y, "GAME  OVER");
+    // Draw Title
+    setcolor(BLACK);
+    setbkcolor(LIGHTGRAY);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
+    int title_x = (x_max / 2) - 160, title_y = 150;
+    outtextxy(title_x, title_y, (char *)title.c_str());
 
-    //menu selection
-    int end_menu_size=3;
+    // Initial Menu Options Drawn
+    for (int i = 0; i < options.size(); ++i)
+    {
+        int button_y = y_offset + (i * button_height); // calculating Y-coordinate for current option
+        drawButton(x_offset, button_y, options[i].first, selected == i);
+    }
 
-    int const end_menu_items=2;
-    char* end_menu[end_menu_items];
-    end_menu[0]="Main  Menu";
-    end_menu[1]="Exit  Game";
+    // Menu Loop
+    for (;;)
+    {
+        // Change Selection on UP or 'W' Keypress
+        if (GetAsyncKeyState(VK_UP) || GetAsyncKeyState(VK_W))
+        {
+            // Painting the previous button as "Normal"
+            int button_y = y_offset + (selected * button_height);
+            drawButton(x_offset, button_y, options[selected].first, false);
 
-    int selection=0;
-    int end_menu_x=x_max/2-(end_menu_size*8*10/2), end_menu_y=300;
-    printf("%d", end_menu_x);
-    
-    for(;;){
-        if(GetAsyncKeyState(VK_UP)){
-            if(selection==1) selection--;
+            // reducing selection and cycling selection value.
+            if (--selected < 0)
+                selected = options.size() - 1;
+
+            // Painting the new selection as "Active"
+            button_y = y_offset + (selected * button_height);
+            drawButton(x_offset, button_y, options[selected].first, true);
         }
-        else if(GetAsyncKeyState(VK_DOWN)){
-            if(selection==0)selection++;
+
+        // Change Selection on DOWN or 'S' Keypress
+        else if (GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState(VK_S))
+        {
+            // Painting the previous button as "Normal"
+
+            int button_y = y_offset + (selected * button_height);
+            drawButton(x_offset, button_y, options[selected].first, false);
+
+            // increasing selection value and cycling selection value.
+            if (++selected >= options.size())
+                selected = 0;
+
+            // Painting the new selection as "Active"
+            button_y = y_offset + (selected * button_height);
+            drawButton(x_offset, button_y, options[selected].first, true);
         }
-        else if(GetAsyncKeyState(VK_RETURN)){
-            if(selection==0){
-                //mainmenu();
-            }
-            else if(selection==1){
-                closegraph();
-                exit(0);
-            }
-        }
-        if(selection==0){
-            setcolor(BLACK);
-            setbkcolor(WHITE);
-            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
-            outtextxy(end_menu_x+10, end_menu_y, end_menu[0]);
-            setcolor(WHITE);
-            setbkcolor(DARKGRAY);
-            outtextxy(end_menu_x+10, end_menu_y+20, end_menu[1]);
-        }
-        else{
-            setcolor(WHITE);
-            setbkcolor(DARKGRAY); 
-            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
-            outtextxy(end_menu_x+10, end_menu_y, end_menu[0]);
-            setcolor(BLACK);
-            setbkcolor(WHITE);
-            outtextxy(end_menu_x+10, end_menu_y+20, end_menu[1]);
-        }
-        delay(100);
         
+        // Execution function associated with current selection on ENTER Keypress
+        else if (GetAsyncKeyState(VK_RETURN))
+        {
+            (options[selected].second)();
+        }
+        
+        delay(100); // this gives time betwen each keypress register
     }
 }
 
 void drawBorder(int x_max, int y_max)
 {
     setfillstyle(SOLID_FILL, GREEN);
-    bar (0, 0, 10, y_max);
-    bar (0, 0, x_max, 10);
-    bar (0, y_max, x_max, y_max-10);
-    bar (x_max, 0, x_max-10, y_max);
+    bar(0, 0, 10, y_max);
+    bar(0, 0, x_max, 10);
+    bar(0, y_max, x_max, y_max - 10);
+    bar(x_max, 0, x_max - 10, y_max);
 }
 
 boolean onFood()
@@ -173,7 +233,7 @@ void drawSnake()
 {
     setfillstyle(SOLID_FILL, WHITE);
     // Drawing only the new head since the previous body points have already been painted. So no need to redraw them.
-    bar(snake_x.front(), snake_y.front(), snake_x.front()+10, snake_y.front()+10);
+    bar(snake_x.front(), snake_y.front(), snake_x.front() + 10, snake_y.front() + 10);
 }
 
 void updateSnake()
@@ -185,28 +245,129 @@ void updateSnake()
     }
 }
 
-int game(){
-    makeFood();
+void exitGame() {
+    closegraph();
+    exit(0);
+}
 
-    srand(time(0)); // Seed the random number generator with the current time
+void mainMenu() {
+    std::vector<MenuOption> main_menu_options;
+
+    main_menu_options.push_back(MenuOption("START GAME", *game));
+    main_menu_options.push_back(MenuOption("EXIT  GAME", *exitGame));
+
+    drawMenu(80, 100, 340, "Main Menu", main_menu_options);
+}
+
+void gameOver()
+{
+    /*
+    bar- area
+    display : GAME  OVER
+    a white button to move up and down to select:-
+    main menu -if selected set score =0, exit game- close graph
+    */
+    int menu_size = 340, menu_x = 80, menu_y = 100;
+    int gameover_size = 4;
+    int menu_selection = 0; // 0=mainmenu, 1=exitgame
+
+    setfillstyle(SOLID_FILL, DARKGRAY);
+    bar(menu_x, menu_y, menu_x + menu_size, menu_y + menu_size);
+
+    // display gameover
+    setcolor(WHITE);
+    setbkcolor(DARKGRAY);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, gameover_size);
+    int gameover_x = x_max / 2 - (gameover_size * 8 * 10 / 2), gameover_y = 150;
+    outtextxy(gameover_x, gameover_y, "GAME  OVER");
+
+    // menu selection
+    int end_menu_size = 3;
+
+    int const end_menu_items = 2;
+    char *end_menu[end_menu_items];
+    end_menu[0] = "Main  Menu";
+    end_menu[1] = "Exit  Game";
+
+    int selection = 0;
+    int end_menu_x = x_max / 2 - (end_menu_size * 8 * 10 / 2), end_menu_y = 300;
+
+    for (;;)
+    {
+        if (GetAsyncKeyState(VK_UP))
+        {
+            if (selection == 1)
+                selection--;
+        }
+        else if (GetAsyncKeyState(VK_DOWN))
+        {
+            if (selection == 0)
+                selection++;
+        }
+        else if (GetAsyncKeyState(VK_RETURN))
+        {
+            if (selection == 0)
+            {
+                mainMenu();
+            }
+            else if (selection == 1)
+            {
+                exitGame();
+            }
+        }
+        if (selection == 0)
+        {
+            setcolor(BLACK);
+            setbkcolor(WHITE);
+            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
+            outtextxy(end_menu_x + 10, end_menu_y, end_menu[0]);
+            setcolor(WHITE);
+            setbkcolor(DARKGRAY);
+            outtextxy(end_menu_x + 10, end_menu_y + 20, end_menu[1]);
+        }
+        else
+        {
+            setcolor(WHITE);
+            setbkcolor(DARKGRAY);
+            settextstyle(DEFAULT_FONT, HORIZ_DIR, end_menu_size);
+            outtextxy(end_menu_x + 10, end_menu_y, end_menu[0]);
+            setcolor(BLACK);
+            setbkcolor(WHITE);
+            outtextxy(end_menu_x + 10, end_menu_y + 20, end_menu[1]);
+        }
+        delay(100);
+    }
+}
+
+void game()
+{
+    static int direction_x = 0, direction_y = -10; // Direction of movement (Default : UP)
+    int score = 0;
+    int frame_time = 100;
+
+    cleardevice();
+    resetSnake();
 
     drawBorder(x_max, y_max);
 
-    int frame_time = 100;
+    srand(time(0)); // Seed the random number generator with the current time
+    makeFood();
+
 
     for (;;)
     {
         if (!inPlayArea(snake_x[0], snake_y[0])) // Exit if Snake Head is outside Play Area.
         {
             gameOver();
-            return score;
+            // return score;
         }
         else if (onFood()) // If Snake Head is on food, increase lenght and score and generate a new food item.
         {
             snake_len++;
             score++;
             makeFood();
-            if(score%2==0) frame_time-=1;
+            if (score % 2 == 0)
+                frame_time -= 1;
         }
         else // If it is a normal movement with no event, repaint the tail as black to hide it.
         {
@@ -244,7 +405,7 @@ int game(){
         // Set new head location.
         snake_x[0] += direction_x;
         snake_y[0] += direction_y;
-        
+
         drawSnake();
         delay(frame_time);
     }
@@ -252,13 +413,11 @@ int game(){
 
 int main()
 {
-    snake_x.front() = 200;
-    snake_y.front() = 200;
     initwindow(x_max, y_max);
-    int sc=game();
-    
+    mainMenu();
+    // int sc = game();
+
     getch();
-    closegraph();
-    return sc;
-    
+    // return sc;
+    return 0;
 }

@@ -23,6 +23,7 @@ const int y_max = 500;
 
 // Gameplay
 static int food_x, food_y; // Current food item coordinates
+static int score = 0;
 
 // Snake
 const int max_length = (x_max - 10) * (y_max - 10); // max len of snake
@@ -65,14 +66,12 @@ void drawButton(int x, int y, std::string text, bool focus)
     {
         setcolor(BLACK);
         setbkcolor(WHITE);
-        settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
         outtextxy(x, y, (char *)text.c_str());
     }
     else
     {
         setcolor(WHITE);
         setbkcolor(DARKGRAY);
-        settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
         outtextxy(x, y, (char *)text.c_str());
     }
 
@@ -80,30 +79,37 @@ void drawButton(int x, int y, std::string text, bool focus)
     setbkcolor(BLACK);
 }
 
-void drawMenu(int x, int y, int menu_size, std::string title, std::vector<MenuOption> options, int selected = 0)
+void drawMenu(int x, int y, int menu_size, std::vector<std::string> headers, std::vector<MenuOption> options, int selected = 0)
 {
     // Gives time if user reaches menu from another Keypress.
-    // If not given then the keypress (mostly ENTER) from previous is registered.
+    // If not given then the keypress (mostly ENTER) from previous menu is registered.
     delay(200);
 
-    int x_offset = x + 20;
-    int y_offset = y + 100;
-    int button_height = 30;
 
     setfillstyle(SOLID_FILL, DARKGRAY);
     bar(x, y, x + menu_size, y + menu_size);
 
-    // Draw Title
+    // Draw Headers
     setcolor(BLACK);
     setbkcolor(LIGHTGRAY);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
-    int title_x = (x_max / 2) - 160, title_y = 150;
-    outtextxy(title_x, title_y, (char *)title.c_str());
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+    int title_y = 150;
+    for (auto text : headers) {
+        int title_x = x + (menu_size/2) - (textwidth((char*)text.c_str())/2);
+        outtextxy(title_x, title_y, (char *)text.c_str());
+        title_y += 40;
+    }
+
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+    int x_offset = x + (menu_size/2) - (textwidth((char*)options[selected].first.c_str())/2);
+    int y_offset = title_y;
+    int button_height = 40;
 
     // Initial Menu Options Drawn
     for (int i = 0; i < options.size(); ++i)
     {
         int button_y = y_offset + (i * button_height); // calculating Y-coordinate for current option
+        x_offset = x + (menu_size/2) - (textwidth((char*)options[i].first.c_str())/2);
         drawButton(x_offset, button_y, options[i].first, selected == i);
     }
 
@@ -115,6 +121,7 @@ void drawMenu(int x, int y, int menu_size, std::string title, std::vector<MenuOp
         {
             // Painting the previous button as "Normal"
             int button_y = y_offset + (selected * button_height);
+            x_offset = x + (menu_size/2) - (textwidth((char*)options[selected].first.c_str())/2);
             drawButton(x_offset, button_y, options[selected].first, false);
 
             // reducing selection and cycling selection value.
@@ -123,6 +130,7 @@ void drawMenu(int x, int y, int menu_size, std::string title, std::vector<MenuOp
 
             // Painting the new selection as "Active"
             button_y = y_offset + (selected * button_height);
+            x_offset = x + (menu_size/2) - (textwidth((char*)options[selected].first.c_str())/2);
             drawButton(x_offset, button_y, options[selected].first, true);
         }
 
@@ -132,6 +140,7 @@ void drawMenu(int x, int y, int menu_size, std::string title, std::vector<MenuOp
             // Painting the previous button as "Normal"
 
             int button_y = y_offset + (selected * button_height);
+            x_offset = x + (menu_size/2) - (textwidth((char*)options[selected].first.c_str())/2);
             drawButton(x_offset, button_y, options[selected].first, false);
 
             // increasing selection value and cycling selection value.
@@ -140,6 +149,7 @@ void drawMenu(int x, int y, int menu_size, std::string title, std::vector<MenuOp
 
             // Painting the new selection as "Active"
             button_y = y_offset + (selected * button_height);
+            x_offset = x + (menu_size/2) - (textwidth((char*)options[selected].first.c_str())/2);
             drawButton(x_offset, button_y, options[selected].first, true);
         }
 
@@ -253,9 +263,9 @@ void mainMenu()
     std::vector<MenuOption> main_menu_options;
 
     main_menu_options.push_back(MenuOption("START GAME", *game));
-    main_menu_options.push_back(MenuOption("EXIT  GAME", *exitGame));
+    main_menu_options.push_back(MenuOption("EXIT GAME", *exitGame));
 
-    drawMenu(80, 100, 340, "Main Menu", main_menu_options);
+    drawMenu(80, 100, 340, {"Snake Game", "Main Menu"}, main_menu_options);
 }
 
 void gameOver()
@@ -264,14 +274,13 @@ void gameOver()
 
     game_over_options.push_back(MenuOption("MAIN MENU", *mainMenu));
     game_over_options.push_back(MenuOption("EXIT GAME", *exitGame));
-
-    drawMenu(80, 100, 340, "Game Over", game_over_options);
+    std::string score_string = "Your Score : " + std::to_string(score);
+    drawMenu(80, 100, 340, {"Game Over", score_string}, game_over_options);
 }
 
 void game()
 {
     static int direction_x = 0, direction_y = -10; // Direction of movement (Default : UP)
-    int score = 0;
     int frame_time = 100;
 
     cleardevice();

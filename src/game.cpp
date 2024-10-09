@@ -72,7 +72,7 @@ void drawButton(int x, int y, std::string text, bool focus)
     {
         setcolor(WHITE);
         setbkcolor(DARKGRAY);
-        outtextxy(x, y, (char *)text.c_str());
+          outtextxy(x, y, (char *)text.c_str());
     }
 
     setcolor(WHITE);
